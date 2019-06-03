@@ -1,13 +1,20 @@
+const terminal = require('terminal-kit').terminal
+
+const blockSize = 2;
 const height = 22;
 const width = 12;
 const wall = '▣';
 const empty = ' ';
 const tetrino = '▩';
+const mapStartPosition = {
+    x: 3,
+    y: 3
+}
 
 let mapArr = [[]];
 let tetrinoXY = {
-    x: 1,
-    y: 1
+    x: 0,
+    y: 0
 };
 
 
@@ -58,7 +65,6 @@ function initSystem() {
                 }
             }
         }
-        drawMap();
     });
 }
 
@@ -74,9 +80,10 @@ function sleep(mils) {
 }
 function drawMap() {
     clear();
-
-    for (let v of mapArr) {
-        for (let w of v) {
+    for (let i = 0; i < mapArr.length * blockSize; i++) {
+        const v = mapArr[Math.floor(i / blockSize)];
+        for (let j = 0; j < mapArr.length * blockSize; j++) {
+            const w = v[Math.floor(j / blockSize)];
             let view = '';
             switch (w) {
                 case 0:
@@ -93,11 +100,33 @@ function drawMap() {
         }
         process.stdout.write('\n');
     }
+    terminal.hideCursor();
+}
+function drawPart(before, after) {
+
+    for (let i = 0; i < blockSize; i++) {
+        for (let j = 0; j < blockSize; j++) {
+            terminal.moveTo(before.x * blockSize + mapStartPosition.x + i, before.y * blockSize + mapStartPosition.y + j)
+            process.stdout.write(empty);
+        }
+    }
+    for (let i = 0; i < blockSize; i++) {
+        for (let j = 0; j < blockSize; j++) {
+            terminal.moveTo(after.x * blockSize + mapStartPosition.x + i, after.y * blockSize + mapStartPosition.y + j)
+            process.stdout.write(tetrino);
+        }
+    }
+    terminal.hideCursor();
+
 }
 function setTetrino() {
     mapArr[1][1] = 2;
 }
 function moveTetrino(type) {
+    const beforeXY = {
+        x: tetrinoXY.x,
+        y: tetrinoXY.y
+    }
     mapArr[tetrinoXY.y][tetrinoXY.x] = 0;
     switch (type) {
         case 0:
@@ -114,6 +143,8 @@ function moveTetrino(type) {
             break;
     }
     mapArr[tetrinoXY.y][tetrinoXY.x] = 2;
+
+    drawPart(beforeXY, tetrinoXY);
 }
 async function main() {
     initSystem();
@@ -121,8 +152,8 @@ async function main() {
     setTetrino();
     drawMap();
     // while (true) {
-    //     await sleep(1000);
-
+    //     await sleep(100);
+    //     moveTetrino(1)
     // }
 }
 
